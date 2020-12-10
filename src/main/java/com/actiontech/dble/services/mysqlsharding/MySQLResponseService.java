@@ -221,6 +221,7 @@ public class MySQLResponseService extends VariablesService {
                         if (taskQueue.size() > 0) {
                             taskToTotalQueue(null);
                         }
+                        DbleServer.getInstance().getThreadUsedMap().remove(Thread.currentThread().getName());
                     }
                 }
             });

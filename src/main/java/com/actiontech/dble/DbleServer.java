@@ -44,15 +44,13 @@ import com.actiontech.dble.singleton.*;
 import com.actiontech.dble.statistic.stat.ThreadWorkUsage;
 import com.actiontech.dble.util.ExecutorUtil;
 import com.actiontech.dble.util.TimeUtil;
+import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.channels.AsynchronousChannelGroup;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -67,6 +65,11 @@ public final class DbleServer {
     //used by manager command show @@binlog_status to get a stable GTID
     private final AtomicBoolean backupLocked = new AtomicBoolean(false);
 
+    public static final String BUSINESS_EXECUTOR_NAME = "BusinessExecutor";
+    public static final String BACKEND_BUSINESS_EXECUTOR_NAME = "backendBusinessExecutor";
+    public static final String WRITE_TO_BACKEND_EXECUTOR_NAME = "writeToBackendExecutor";
+    public static final String COMPLEX_QUERY_EXECUTOR_NAME = "complexQueryExecutor";
+    public static final String TIMER_EXECUTOR_NAME = "Timer";
 
     private volatile SystemVariables systemVariables = new SystemVariables();
     private TxnLogProcessor txnLogProcessor;
@@ -106,6 +109,7 @@ public final class DbleServer {
     private Queue<ServiceTask> concurrentBackHandlerQueue;
 
     private volatile boolean startup = false;
+    private Map<String, Map<Thread, Runnable>> runnableMap = Maps.newHashMap();
 
     private DbleServer() {
     }
@@ -150,11 +154,11 @@ public final class DbleServer {
         backendProcessors = new IOProcessor[backendProcessorCount];
 
 
-        businessExecutor = ExecutorUtil.createFixed("BusinessExecutor", SystemConfig.getInstance().getProcessorExecutor());
-        backendBusinessExecutor = ExecutorUtil.createFixed("backendBusinessExecutor", SystemConfig.getInstance().getBackendProcessorExecutor());
-        writeToBackendExecutor = ExecutorUtil.createFixed("writeToBackendExecutor", SystemConfig.getInstance().getWriteToBackendExecutor());
-        complexQueryExecutor = ExecutorUtil.createCached("complexQueryExecutor", SystemConfig.getInstance().getComplexExecutor());
-        timerExecutor = ExecutorUtil.createFixed("Timer", 1);
+        businessExecutor = ExecutorUtil.createFixed(BUSINESS_EXECUTOR_NAME, SystemConfig.getInstance().getProcessorExecutor(), runnableMap);
+        backendBusinessExecutor = ExecutorUtil.createFixed(BACKEND_BUSINESS_EXECUTOR_NAME, SystemConfig.getInstance().getBackendProcessorExecutor(), runnableMap);
+        writeToBackendExecutor = ExecutorUtil.createFixed(WRITE_TO_BACKEND_EXECUTOR_NAME, SystemConfig.getInstance().getWriteToBackendExecutor(), runnableMap);
+        complexQueryExecutor = ExecutorUtil.createCached(COMPLEX_QUERY_EXECUTOR_NAME, SystemConfig.getInstance().getComplexExecutor(), runnableMap);
+        timerExecutor = ExecutorUtil.createFixed(TIMER_EXECUTOR_NAME, 1);
 
         LOGGER.info("====================================Task Queue&Thread init start==================================");
         initTaskQueue();
@@ -673,6 +677,10 @@ public final class DbleServer {
 
     public Queue<ServiceTask> getConcurrentBackHandlerQueue() {
         return concurrentBackHandlerQueue;
+    }
+
+    public Map<String, Map<Thread, Runnable>> getRunnableMap() {
+        return runnableMap;
     }
 
     public void setConcurrentBackHandlerQueue(Queue<ServiceTask> concurrentBackHandlerQueue) {

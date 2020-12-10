@@ -261,6 +261,7 @@ public class MySQLBackAuthService extends AuthService {
             if (taskQueue.size() > 0) {
                 taskToTotalQueue(task);
             }
+            DbleServer.getInstance().getThreadUsedMap().remove(Thread.currentThread().getName());
         }
     }
 
