@@ -121,6 +121,7 @@ public class ConnectionPool extends PoolBase implements MySQLConnectionListener 
                 final BackendConnection conn = newConnection(schema, ConnectionPool.this);
                 if (conn != null) {
                     if (ToResolveContainer.REACH_MAX_CON.contains(alertKey)) {
+                        LOGGER.warn("ddddddddddddddddddddddd");
                         AlertUtil.alertResolve(AlarmCode.REACH_MAX_CON, Alert.AlertLevel.WARN, "dble", config.getId(), labels,
                                 ToResolveContainer.REACH_MAX_CON, alertKey);
                     }
@@ -133,6 +134,8 @@ public class ConnectionPool extends PoolBase implements MySQLConnectionListener 
             // alert
             String maxConError = "the max active Connections size can not be max than maxCon for dbInstance[" + instance.getDbGroupConfig().getName() + "." + config.getInstanceName() + "]";
             LOGGER.warn(maxConError);
+
+            LOGGER.warn("cccccccccccccccccccccccccc");
             AlertUtil.alert(AlarmCode.REACH_MAX_CON, Alert.AlertLevel.WARN, maxConError, "dble", config.getId(), labels);
             ToResolveContainer.REACH_MAX_CON.add(alertKey);
         }
