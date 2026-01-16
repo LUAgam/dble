@@ -90,6 +90,10 @@ public class DelayDetection {
         String replace = "?";
         for (String str : list) {
             int index = sb.indexOf(replace);
+            if (index == -1) {
+                LOGGER.warn("convert template failed: no more '?' placeholder found in template, remaining params: {}", list.size());
+                break;
+            }
             sb.replace(index, index + 1, str);
         }
         return sb.toString();
