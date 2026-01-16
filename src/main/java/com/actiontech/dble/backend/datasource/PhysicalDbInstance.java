@@ -290,6 +290,9 @@ public abstract class PhysicalDbInstance implements ReadTimeStatusInstance {
 
     void setReadInstance(boolean value) {
         this.readInstance = value;
+        if (heartbeat != null) {
+            heartbeat.refreshHeartbeatSQL();
+        }
     }
 
     public void setDbGroup(PhysicalDbGroup dbGroup) {

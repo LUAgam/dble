@@ -196,6 +196,13 @@ public class MySQLHeartbeat {
         return detectorSql;
     }
 
+    void refreshHeartbeatSQL() {
+        if (!isDelayDetection) {
+            return;
+        }
+        this.heartbeatSQL = getDetectorSql(source.getDbGroupConfig().getName(), source.getDbGroupConfig().getDelayDatabase());
+    }
+
     private String convert(String template, List<String> list) {
         StringBuilder sb = new StringBuilder(template);
         String replace = "?";
